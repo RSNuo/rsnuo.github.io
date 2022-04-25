@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!--*****************************************************
+
+GEOG 414: Programming for Geospatial Data Science II
+Unit 2 Assignment: Choropleth Map
+
+This part of your Unit 2 assignment requires that you develop a choropleth map using Leaflet, a popular front-end JavaScript Web mapping framework.  You will use GeoJSON source data containing polygon geometry and attribute data to create an interactive map.
+
+Add your work directly to this document, and once complete, submit to the course website for grading.
+
+*****************************************************-->
+
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<!-- TO DO: Add a map title -->
+	<title>Purchasing Power Indicators of the Yangtze River Delta City Cluster, China, 2020</title>
+	<!-- TO DO: Import Bootstrap (first), Leaflet (second), and ColorBrewer (third) -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" 
+	crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" 
+	crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+   integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+   crossorigin=""/>
+	<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+   crossorigin=""></script>
+    <script src="https://colorbrewer2.org/export/colorbrewer.js"></script>
+    <!-- TO DO: Import GeoJSON file, converted to JS file with variable declaration -->
+	<script src="csj.js"></script>
+	<!-- -->
+    <style>
+		/* TO DO: Write custom CSS for map and legend as needed */
+		#map {
+			height: 700px;
+			margin-top: 30px;
+		}
+		#map path:hover {
+			fill: red;
+			stroke: black;
+		}
+		#legend {
+			background-color: #ffffff;
+			padding:5px;
+			border: 2px solid rgba(0,0,0,0.2);
+			border-radius:4px;
+		}
+		#legend-title {
+			font-weight: bold;
+			border-bottom: 1px solid rgba(0,0,0,0.2);
+			margin-bottom: 5px;
+			padding-bottom: 5px;
+		}
+		.legend-color {
+			display: table-cell;
+			width: 30px;
+			height: 30px;
+		}
+		.legend-caption {
+			display: table-cell;
+			vertical-align: middle;
+			padding-left: 5px;
+		}
+	</style>
+</head>
+<body>
+	<!-- TO DO: Create single-column Bootstrap layout with three rows: one for the map's header (title and subtitle), a second row containing the required map controls, and another containing the map itself -->
+	<div class="container">
+		<div class = "row">
+			<div class = "col">
+				<h3>Purchasing Power Indicators of the Yangtze River Delta City Cluster, China, 2020</h3>
+				<h6>Furniture/furnishing, Clothing, Footwear, Food & Beverage, Electronics & IT, Alcoholic Beverage, Tobacco, Recreation Durable, Books and Stationery, Catering Services, and Medical Products</h6>
+			</div>
+		</div>
+		<hr/>
+		<div class="row">
+			<div class="col">
+				<p>Select a data variable:</Select></Select></p>
+				<select id="select-variable" class="form-select" aria-label="Data variable Selection" onchange="drawMap()">
+					<option value="PPIDX_CY">Purchasing Power: Index</option>
+                    <option value="CS06IDX_CY">Furniture/furnishing: Index</option>
+					<option value="CS04IDX_CY">Clothing: Index</option>
+                    <option value="CS15IDX_CY">Footwear: Index</option>
+                    <option value="CS01IDX_CY">Food & Beverage: Index</option>
+					<option value="CS13IDX_CY">Electronics & IT: Index</option>
+                    <option value="CS02IDX_CY">Alcoholic Beverage: Index</option>
+                    <option value="CS03IDX_CY">Tobacco: Index</option>
+					<option value="CS14IDX_CY">Recreation Durable: Index</option>
+                    <option value="CS17IDX_CY">Books and Stationery: Index</option>
+                    <option value="CS18IDX_CY">Catering Services: Index</option>
+                    <option value="CS12IDX_CY">Medical Products: Index</option>
+				  </select>
+			</div>
+			<div class="col">
+				<p>Select a Color Ramp:</Select></Select></p>
+				<select id="select-color" class="form-select" aria-label="Color Ramp Selection" onchange="drawMap()">
+					<option value="YlOrRd" selected>Yellow - Orange - Red</option>
+                    <option value="YlGnBu">Yellow - Green - Blue</option>
+					<option value="RdPu">Red - Purple</option>
+					<option value="PuOr">Oranges - Purple/option>
+					<option value="Paired">Blue - Green - Red</option>
+					<option value="GnBu">Green - Blue </option>
+				</select>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col">
+				<div id ="map"></div>
+			</div> 
+		</div>
+	</div>
+    <!-- TO DO: Outside the container, create the structure of the legend -->
+	<div id="legend">
+		<div id="legend-title"></div>
+		<div id="legend-rows"></div>
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+
+// TO DO: Write utility function to return fill color for polygons
+function fillColor(v) {
+	let colorSelect = document.getElementById("select-color");
+	let colorScheme = colorSelect.options[colorSelect.selectedIndex].value;
+	if (v >= 150) return colorbrewer[colorScheme][6][5];
+	else if (v >= 120) return colorbrewer[colorScheme][6][4];
+	else if (v >= 90) return colorbrewer[colorScheme][6][3];
+	else if (v >= 60) return colorbrewer[colorScheme][6][2];
+	else if (v >= 30) return colorbrewer[colorScheme][6][1];
+	else return colorbrewer[colorScheme][6][0]; 
+}
+// TO DO: Initialize the variable for the primary map data layer with a null value so that we can access this variable globally
+let dataLayer = null;
+// TO DO: Initialize the map with an appropriate center and zoom level
+var map = L.map('map').setView([32, 118], 6);
+
+// TO DO: Add a visually appealing and unobtrusive basemap
+let basemap =  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+	maxZoom: 13}).addTo(map);
+
+
+// TO DO: Create a function to draw the GeoJSON data layer (to be called any time the map control dropdowns are changed)
+function drawMap() {
+	let colorSelect = document.getElementById("select-color");
+	let colorScheme = colorSelect.options[colorSelect.selectedIndex].value;
+	let variableSelect = document.getElementById("select-variable");
+	let selectedVariable = variableSelect.options[variableSelect.selectedIndex].value;
+	if (dataLayer != null) map.removeLayer(dataLayer);
+
+	// TO DO WITHIN FUNCTION : Add GeoJSON data layer, using style property to apply appropriate fill color, stroke width, and stroke color.  Bind a tooltip showing variable values to each feature as well, within the pointToLayer function.
+    dataLayer = L.geoJson(csj_data, {
+		style: function(feature) {
+			return {
+				'fillColor': fillColor(feature.properties[selectedVariable]),
+				'color': fillColor(feature.properties[selectedVariable]),
+				'weight' : 1
+			}
+		}
+	})
+	.bindTooltip(function(layer) {
+		return `<strong>${layer.feature.properties.NAME}</strong><hr/><strong>${layer.feature.properties.RG_NAME}</strong><hr/>Purchasing Power (Index): ${layer.feature.properties.PPIDX_CY.toFixed(2)}<br/
+        >Furniture/furnishing (Index): ${layer.feature.properties.CS06IDX_CY.toFixed(2)}<br/>Clothing (Index): ${layer.feature.properties.CS04IDX_CY.toFixed(2)}<br/>Recreation Durable (Index): ${layer.feature.properties.CS14IDX_CY.toFixed(2)}<br/
+		>Footwear (Index): ${layer.feature.properties.CS15IDX_CY.toFixed(2)}<br/>Food & Beverage (Index): ${layer.feature.properties.CS01IDX_CY.toFixed(2)}<br/> Electronics & IT (Index): ${layer.feature.properties.CS13IDX_CY.toFixed(2)}<br/
+        > Alcoholic Beverage (Index): ${layer.feature.properties.CS02IDX_CY.toFixed(2)}<br/>Tobacco (Index): ${layer.feature.properties.CS03IDX_CY.toFixed(2)}<br/
+        > Catering Services (Index): ${layer.feature.properties.CS18IDX_CY.toFixed(2)}<br/>Books and Stationery (Index): ${layer.feature.properties.CS17IDX_CY.toFixed(2)}<br/
+        > Medical Products (Index): ${layer.feature.properties.CS12IDX_CY.toFixed(2)}`
+	})
+	.addTo(map);
+	// TO DO WITHIN FUNCTION: Create new Leaflet control and using the onAdd function, take the contents of the legend in the DOM and assign it to the new Leaflet control
+    document.getElementById("legend-title").innerHTML =  variableSelect.options[variableSelect.selectedIndex].text;
+	let legendItems = '';
+	let legendLables = ["<= 30", "30 - 60", "60 - 90", "90 - 120", "120 - 150", ">= 150"]
+	for (i = 0; i<=5; i++) {
+		legendItems = legendItems + `<div class ='legend-row'><div class='legend-color' style = 'background-color: ${colorbrewer[colorScheme][6][i]}'></div><div class='legend-caption'>${legendLables[i]}
+		</div></div>`;
+		console.log(legendItems);
+	}
+	document.getElementById("legend-rows").innerHTML = legendItems;
+
+	let legendControl = L.control({'position': 'bottomleft'});
+	legendControl.onAdd = function(m) {
+		return document.getElementById("legend");
+	};
+	legendControl.addTo(map);
+}
+// TO DO: Call map drawing function to initialize map with default values
+drawMap();
+
+</script>
