@@ -1,0 +1,171 @@
+<!--*****************************************************
+
+GEOG 414: Programming for Geospatial Data Science II
+Unit 1 Assignment
+
+This assignment asks you to complete five short warm-up JavaScript programming exercises, and then two more challenging exercises that involve both (1) creating a user interface with HTML code and (2) writing JavaScript code that ties logic to the interface.
+
+Add your work directly to this document, and once complete, submit to the course website for grading.
+
+*****************************************************-->
+
+<html>
+<!-- Add HTML head that loads Bootstrap CSS and JS -->
+<head>
+	<title>Location Calculator and Guessing Game</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+	<style>
+	.container {
+		margin-top: 2em;
+	}
+	</style>
+</head>
+<!-- Add HTML body containing two-column Bootstrap layout -->
+<body>
+	<div class="container">
+		<div class="row align-items-start">
+      <!-- Column 1: distance calculator -->
+			<div class="col">
+				<h4>Distance Calculator</h4>
+				<p>Enter the latitude and longitude coordinates of two locations to calculate their distance.</p>
+				<form>
+					<div class="mb-3">
+						<label for="location1lat" class="form-label">Location 1 Latitude</label>
+						<input type="text" class="form-control" id="location1lat" aria-describedby="location1lathelp">
+						<div id="location1lathelp" class="form-text">Enter a latitude in decimal degrees (i.e., between -90 and 90).</div>
+					</div>
+					<div class="mb-3">
+						<label for="location1lon" class="form-label">Location 1 Longitude</label>
+						<input type="text" class="form-control" id="location1lon" aria-describedby="location1lon">
+						<div id="location1lonhelp" class="form-text">Enter a longitude in decimal degrees (i.e., between -180 and 180).</div>
+					</div>
+					<div class="mb-3">
+						<label for="location2lat" class="form-label">Location 2 Latitude</label>
+						<input type="text" class="form-control" id="location2lat" aria-describedby="location2lathelp">
+						<div id="location2lathelp" class="form-text">Enter a latitude in decimal degrees (i.e., between -90 and 90).</div>
+					</div>
+					<div class="mb-3">
+						<label for="location2lon" class="form-label">Location 2 Longitude</label>
+						<input type="text" class="form-control" id="location2lon" aria-describedby="location2lon">
+						<div id="location2lonhelp" class="form-text">Enter a longitude in decimal degrees (i.e., between -180 and 180).</div>
+					</div>
+					<div class="form-check form-check-inline">
+						<input class="form-check-input" type="radio" name="unitRadio" id="milesRadio" value="miles">
+						<label class="form-check-label" for="milesRadio">Miles</label>
+					</div>
+					<div class="form-check form-check-inline">
+						<input class="form-check-input" type="radio" name="unitRadio" id="kilometersRadio" value="kilometers" checked>
+						<label class="form-check-label" for="inlineRadio2">Kilometers</label>
+					</div>
+				</form>
+				<button type="button" class="btn btn-primary" onclick="onClickLocation()">Calculate</button>
+				<p>
+					<div id="distanceResult"></div>
+				</p>
+			</div>
+      <!-- Column 2: guessing game -->
+			<div class="col">
+				<h4>Guessing Game</h4>
+				<p>I'm thinking of a number between 1 and 100. Your job is to guess it! Enter your guess below.</p>
+        <form>
+          <div class="mb-3">
+						<label for="guess" class="form-label">Your Guess</label>
+						<input type="text" class="form-control" id="guess" aria-describedby="guesshelp">
+						<div id="guesshelp" class="form-text">Enter your guess (i.e., a number between 1 and 100, inclusive).</div>
+					</div>
+        </form>
+        <button type="button" class="btn btn-primary" onclick="checkGuess()">Check Guess</button>
+        <p>
+          <div id="gameFeedback"></div>
+        </p>
+			</div>
+		</div>
+	</div>
+	<div id="empty"></div>
+</body>
+</html>
+
+<script>
+// UTILITY FUNCTION:  Haversine distance calculator
+function haversine(lat1, lon1, lat2, lon2, miles) {
+    function toRad(x) {
+        return x * Math.PI / 180;
+    }
+    const R = 6371; // km
+    let x1 = lat2 - lat1;
+    let dLat = toRad(x1);
+    let x2 = lon2 - lon1;
+    let dLon = toRad(x2)
+    let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    let d = R * c;
+    if (miles == true) d = d / 1.60934;
+    return d;
+}
+
+// *****************************************************
+// WARM-UP EXERCISES:  Complete this series of five warm-up exercises to get started with JavaScript programming.  Your code for each one of the exercises should be placed after the comment introducing each exercise.  Each exercise is worth one point of your assignment score.
+
+// EXERCISE 1:  Write a loop that displays (on the console) the powers of 2 (i.e., 2 to the n-th power) for all numbers (n) ranging from 0 to 20.  Your output should be displayed in user-friendly text, i.e., "2 to the power of 8 is 256."
+for (i = 0; i <= 20; i++) {
+  console.log(`2 to the power of ${i} is ${Math.pow(2,i)}.`);
+}
+
+// EXERCISE 2:  Write a function that implements the Pythagorean theorem and returns the length of the hypotenuse of a right triangle using the lengths of the sides, which are to be passed in to the function as arguments.
+function pythagorean(a,b) {
+  return Math.sqrt(a*a + b*b);
+}
+console.log(pythagorean(3,4));
+
+// EXERCISE 3:  Write a function that can be used to test whether a number is even or odd, and call this function on at least one even number and one odd number to demonstrate that it works properly. The function should return a value of true if the number is even and false if the number is odd.
+function isEven(x) {
+  return (x % 2 == 0);
+}
+console.log(isEven(2));
+console.log(isEven(1));
+
+// EXERCISE 4:  Write a function that converts Degree-Minute-Second (DMS) coordinates to decimal degrees.  The function should accept degrees, minutes, and seconds as three separate arguments.
+function dms_to_dd(d,m,s) {
+  return d + m/60 + s/3600;
+}
+console.log(dms_to_dd(34,50,12.34));
+
+// EXERCISE 5:  Write a statement that changes the HTML content of a <div> tag.
+document.getElementById("empty").innerHTML = 'Hello world!';
+
+
+// *****************************************************
+// PROGRAMMING CHALLENGES:  You will complete two more extensive programming exercises -- (1) developing an interactive distance calculation tool, and (2) developing an interactive guessing game.  Write the JavaScript code for each of the programming challenges below.  All supporting HTML should be written above where indicated.
+
+// PROGRAMMING CHALLENGE 1:  LOCATION CALCULATOR (eight points)
+// Place the JavaScript code for your location calculator below.
+// HINT:  Write a function that calculates distance after the user clicks on a button.
+function onClickLocation() {
+    let lat1 = document.getElementById('location1lat').value;
+    let lon1 = document.getElementById('location1lon').value;
+    let lat2 = document.getElementById('location2lat').value;
+    let lon2 = document.getElementById('location2lon').value;
+    let miles = document.getElementById('milesRadio').checked;
+    let unit = 'km';
+    if (miles == true) unit = 'mi';
+    let d = haversine(lat1,lon1,lat2,lon2,miles);
+    document.getElementById('distanceResult').innerHTML = `The distance between point (${lat1},${lat2}) and (${lat1},${lat2}) is <strong>${d.toFixed(4)} ${unit}</strong>.`;
+}
+
+// PROGRAMMING CHALLENGE 2: NUMBER GUESSING GAME (six points)
+// Place the JavaScript code for your number guessing game below.  Note that you do not need to write logic to handle restarting the game --  for the sake of simplicity, the user can reload the Web page to restart the game.
+// HINT:  Declare variables for storing (1) turns taken and (2) the correct number, and then write a function to check the guess that is triggered by clicking a button.
+let game_turns = 0;
+let game_correct = Math.floor(Math.random() * 99) + 1;
+function checkGuess() {
+  game_turns = game_turns + 1;
+  let guess = document.getElementById('guess').value;
+  if (guess == game_correct) document.getElementById('gameFeedback').innerHTML = `Correct!  You guessed the correct number after ${game_turns} turns.  Reload the page to play again.`;
+  else if (guess > game_correct) document.getElementById('gameFeedback').innerHTML = `Your guess was too high.  You have guessed ${game_turns} times so far.`;
+  else if (guess < game_correct) document.getElementById('gameFeedback').innerHTML = `Your guess was too low.  You have guessed ${game_turns} times so far.`;
+}
+
+</script>
